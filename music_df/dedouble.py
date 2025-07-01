@@ -1,6 +1,12 @@
+"""
+Provides a function to "dedouble" a music_df.
+
+Dedoubling is removing rows that have the same type, onset, release, and pitch.
+"""
+
 from typing import Iterable
 
-import numpy as np
+import numpy as np  # Used by doctests
 import pandas as pd
 
 
@@ -11,16 +17,21 @@ def dedouble(
     match_releases: bool = True,
     # columns are always deduplicated on onset and release
     columns: Iterable[str] = ("type", "pitch"),
-    # columns_to_ignore: Iterable[str] = (
-    #     "instrument",
-    #     "midi_instrument",
-    #     "part",
-    #     "track",
-    #     "channel",
-    #     "original_index",
-    # ),
 ) -> pd.DataFrame:
     """
+    Dedouble a music_df.
+
+    Args:
+        df: The dataframe to dedouble.
+        quantize: Whether to quantize the onset and release times before dedoubling.
+            Default is True.
+        ticks_per_quarter: The number of ticks per quarter note when quantizing.
+            Default is 16.
+        match_releases: Whether to match releases as well as onsets when dedoubling.
+            Default is True.
+        columns: The columns, other than onset and release, to deduplicate on.
+            Default is ("type", "pitch").
+
     >>> df = pd.DataFrame(
     ...     {
     ...         "type": ["time_signature", "bar", "note", "note", "note", "bar"],
@@ -41,8 +52,9 @@ def dedouble(
     ...     }
     ... )
     >>> pd.set_option(
-    ...     "display.width", 100
+    ...     "display.width", 200
     ... )  # To avoid issues when the terminal is a different size
+    >>> pd.set_option("display.max_columns", None)
 
     >>> df  # doctest: +NORMALIZE_WHITESPACE
                  type  track  channel  pitch  onset  release  velocity                                              other

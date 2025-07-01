@@ -15,7 +15,6 @@ try:
 except ImportError:
     pass
 else:
-
     from mspell import Speller
 
     from music_df.humdrum_export.df_to_homo_df import df_to_homo_df
@@ -130,7 +129,10 @@ else:
         labels = None
         dur = note.release - note.onset
         offsets, notes = _get_kern_notes_sub(
-            spelled, dur, measure_offset, meter  # type:ignore
+            spelled,
+            dur,
+            measure_offset,
+            meter,  # type:ignore
         )
         if len(notes) > 1:
             notes[0] = "[" + notes[0]
@@ -216,7 +218,7 @@ else:
         ...         "type": ["note"] * 3,
         ...     }
         ... )
-        >>> df
+        >>> df  # doctest: +NORMALIZE_WHITESPACE
         pitch  onset  release  type
         0     60      0        1  note
         1     64      0        1  note
@@ -231,7 +233,7 @@ else:
         ...         "type": ["bar"] + ["note"] * 5,
         ...     }
         ... )
-        >>> df
+        >>> df  # doctest: +NORMALIZE_WHITESPACE
         pitch  onset  release  type
         0      0    0.0      NaN   bar
         1     60    0.0      1.0  note
@@ -251,7 +253,7 @@ else:
         ...         "type": ["bar"] * 4,
         ...     }
         ... )
-        >>> df
+        >>> df  # doctest: +NORMALIZE_WHITESPACE
         pitch  onset  release type
         0    NaN      0        4  bar
         1    NaN      4        8  bar
@@ -268,7 +270,7 @@ else:
         ...         "type": ["bar", "note", "bar", "note"],
         ...     }
         ... )
-        >>> df
+        >>> df  # doctest: +NORMALIZE_WHITESPACE
         pitch  onset  release  type
         0      0      0        4   bar
         1     60      0        5  note
@@ -289,7 +291,7 @@ else:
         ...         "label": ["hi", "bye", "hello"],
         ...     }
         ... )
-        >>> df
+        >>> df  # doctest: +NORMALIZE_WHITESPACE
         pitch  onset  release  type  label
         0     60      0        1  note     hi
         1     64      0        1  note    bye
@@ -310,6 +312,11 @@ else:
         this_measure_labels = []
 
         skip_measure = False
+
+        if label_col is not None:
+            # If we are reading from a csv file, empty strings will have
+            #   been replaced by nans, which we want to undo
+            voice_part[label_col] = voice_part[label_col].fillna("")
 
         # TODO: (Malcolm 2024-02-29) remove obsolete code?
         # actual_bar_dur = 0
@@ -405,7 +412,14 @@ else:
                     #   together below
                     this_measure_labels.append("REMOVE")
                     assert len(this_measure_labels) == len(this_measure_tokens)
-            elif row.type in {"tempo", "text"}:
+            elif row.type in {
+                "tempo",
+                "text",
+                "control_change",
+                "midi_port",
+                "program_change",
+                "end_of_track",
+            }:
                 # (Malcolm 2023-12-18) For now, we do nothing about tempi or text
                 continue
             else:

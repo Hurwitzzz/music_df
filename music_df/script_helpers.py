@@ -79,11 +79,14 @@ def get_csv_title(raw_path, config) -> str:
     return out
 
 
-def get_single_itos(dictionary_path: str) -> list[str]:
-    feature_name = os.path.basename(dictionary_path).rsplit("_", maxsplit=1)[0]
+def get_single_itos(
+    dictionary_path: str, specials_to_prepend: list[str] | None = None
+) -> list[str]:
+    if not specials_to_prepend:
+        specials_to_prepend = []
     with open(dictionary_path) as inf:
         data = inf.readlines()
-    return [
+    return specials_to_prepend + [
         line.split(" ", maxsplit=1)[0]
         for line in data
         if line and not line.startswith("madeupword")
@@ -101,7 +104,6 @@ def get_itos(dictionary_paths: list[str] | str) -> dict[str, list[str]]:
 
 
 def get_single_stoi(dictionary_path: str) -> dict[str, int]:
-    feature_name = os.path.basename(dictionary_path).rsplit("_", maxsplit=1)[0]
     with open(dictionary_path) as inf:
         data = inf.readlines()
     contents = [
@@ -222,6 +224,7 @@ def plot_item_from_logits(
     end_i: int | None = None,
     quantize: int | None = None,
     concat_df_columns: tuple[tuple[str, ...], ...] = (),
+    binary_decision_threshold: float | None = None,
 ):
     if HUMDRUM_UNAVAILABLE:
         raise ValueError("Install music_df humdrum_export requirements")
@@ -277,13 +280,22 @@ def plot_item_from_logits(
     if sync:
         logits = sync_array_by_df(logits, notes_df, sync_col_name_or_names="onset")
 
-    if entropy_to_transparency:
+    if entropy_to_transparency or (binary_decision_threshold is not None):
         probs = softmax(logits)
+
+    if entropy_to_transparency:
         entropy = -np.sum(probs * np.log2(probs), axis=1)
     else:
         entropy = None
 
-    predicted_indices = logits.argmax(axis=-1)
+    if binary_decision_threshold:
+        assert logits.shape[-1] == 2, "binary_decision_threshold requires binary logits"
+        assert (
+            config.n_specials == 0
+        ), "binary_decision_threshold not implemented where config.n_specials != 0"
+        predicted_indices = np.where(probs[:, 1] > binary_decision_threshold, 1, 0)
+    else:
+        predicted_indices = logits.argmax(axis=-1)
 
     predicted_indices -= config.n_specials
     if predicted_indices.min() < 0:

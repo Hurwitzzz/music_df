@@ -12,7 +12,6 @@ try:
 except ImportError:
     pass
 else:
-
     from music_df.humdrum_export.dur_to_kern import KernDurError
     from music_df.humdrum_export.humdrum_export import df2hum
 
@@ -21,14 +20,12 @@ else:
     HUM2PDF = os.path.join(
         os.path.dirname((os.path.realpath(__file__))),
         "..",
-        "..",
         "scripts",
         "humdrum_export",
         "hum2pdf.sh",
     )
     HUM2PDF_NO_COLOR = os.path.join(
         os.path.dirname((os.path.realpath(__file__))),
-        "..",
         "..",
         "scripts",
         "humdrum_export",
@@ -68,6 +65,7 @@ else:
         make_dirs=True,
         has_colors: bool = False,
         keep_intermediate_files: bool = False,
+        capture_output: bool = False,
     ):
         return_code = 1
         assert os.path.exists(HUM2PDF)
@@ -91,7 +89,9 @@ else:
                         "I need to add a flag to the underlying shell script"
                     )
                 subprocess.run(
-                    ["bash", HUM2PDF_NO_COLOR, humdrum_path, pdf_path], check=True
+                    ["bash", HUM2PDF_NO_COLOR, humdrum_path, pdf_path],
+                    check=True,
+                    capture_output=capture_output,
                 )
             return_code = 0
         except subprocess.CalledProcessError:
@@ -120,14 +120,16 @@ else:
                     if keep_intermediate_files:
                         cmd.append("y")
                     print("+ " + " ".join(cmd))
-                    subprocess.run(cmd, check=True)
+                    subprocess.run(cmd, check=True, capture_output=capture_output)
                 else:
                     if keep_intermediate_files:
                         raise NotImplementedError(
                             "I need to add a flag to the underlying shell script"
                         )
                     subprocess.run(
-                        ["bash", HUM2PDF_NO_COLOR, tmp_krn_path, pdf_path], check=True
+                        ["bash", HUM2PDF_NO_COLOR, tmp_krn_path, pdf_path],
+                        check=True,
+                        capture_output=capture_output,
                     )
                 return_code = 0
             except subprocess.CalledProcessError:
@@ -146,6 +148,7 @@ else:
         music_df: pd.DataFrame,
         pdf_path: str,
         keep_intermediate_files: bool = False,
+        capture_output: bool = False,
         **df2hum_args,
     ):
         try:
@@ -157,14 +160,12 @@ else:
         has_colors = ("color" in music_df.columns) or ("color_mask" in music_df.columns)
 
         with tempfile.NamedTemporaryFile(suffix=".krn") as tempf:
-            with open("/Users/malcolm/tmp/testme.krn", "w") as outf:
-                outf.write(humdrum)
             with open(tempf.name, "w") as outf:
                 outf.write(humdrum)
             return run_hum2pdf(
-                # "/Users/malcolm/tmp/testme.krn",
                 tempf.name,
                 pdf_path,
                 has_colors=has_colors,
                 keep_intermediate_files=keep_intermediate_files,
+                capture_output=capture_output,
             )
