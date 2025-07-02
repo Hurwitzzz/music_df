@@ -2,6 +2,7 @@ import itertools
 import logging
 import math
 import re
+import ast
 import typing as t
 from collections import defaultdict
 from fractions import Fraction
@@ -396,17 +397,27 @@ else:
                 skip_measure = False
 
             elif row.type == "time_signature":
+                other_data = row.other
+                if isinstance(other_data, str):
+                    try:
+                        other_data = ast.literal_eval(other_data)
+                    except (ValueError, SyntaxError):
+                        raise TypeError(f"Could not parse 'other' column for time signature: {other_data}")
+
+                if not isinstance(other_data, dict):
+                    raise TypeError(f"Expected 'other' column to be a dict for time_signature, but got {type(other_data)}")
+
                 this_measure_tokens.append(
                     (
                         row.onset,
                         TOKEN_ORDER["time_signature"],
                         kern_ts(
-                            numer=row.other["numerator"],
-                            denom=row.other["denominator"],
+                            numer=other_data["numerator"],
+                            denom=other_data["denominator"],
                         ),
                     )
                 )
-                meter = Meter(f"{row.other['numerator']}/{row.other['denominator']}")
+                meter = Meter(f"{other_data['numerator']}/{other_data['denominator']}")
                 if label_col is not None or nth_note_label_col is not None:
                     # We need to append a dummy value so we can zip tokens and labels
                     #   together below
