@@ -39,7 +39,7 @@ temp_dir=$(mktemp -d)
 trap "rm -R $temp_dir" 0 2 3 15
 
 set -x
-verovio "${input_krn}" "-o" "${temp_dir}/tmp.svg" --footer none --header none --all-pages
+verovio -r "/nfs/homedirs/gahe/verovio/data" "${input_krn}" "-o" "${temp_dir}/tmp.svg" --footer none --header none --all-pages
 
 for f in $(ls "${temp_dir}"/*.svg); do
     if [[ "$IMG_CONVERTER" = cairosvg ]]; then

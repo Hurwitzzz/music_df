@@ -132,8 +132,15 @@ else:
                         capture_output=capture_output,
                     )
                 return_code = 0
-            except subprocess.CalledProcessError:
-                print("hum2pdf failed, skipping")
+            except subprocess.CalledProcessError as e:
+                print("hum2pdf failed, skipping. See error below:")
+                print("--- STDERR from hum2pdf script ---")
+                if e.stderr:
+                    print(e.stderr.decode())
+                print("--- STDOUT from hum2pdf script ---")
+                if e.stdout:
+                    print(e.stdout.decode())
+                print("--- End of script output ---")
             # else:
             #     print("autobeam failed")
             finally:

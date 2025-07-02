@@ -53,7 +53,7 @@ color_legend="${color_dir}/color_legend.png"
 
 set -x
 python3 "${DIR}"/make_legend.py "${input_krn}" "${color_legend}"
-verovio "${input_krn}" "-o" "${temp_dir}/tmp.svg" --footer none --header none --all-pages
+verovio -r "/nfs/homedirs/gahe/verovio/data" "${input_krn}" "-o" "${temp_dir}/tmp.svg" --footer none --header none --all-pages
 
 for f in $(ls "${temp_dir}"/*.svg); do
     if [[ "$IMG_CONVERTER" = cairosvg ]]; then
