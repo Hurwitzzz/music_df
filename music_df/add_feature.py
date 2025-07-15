@@ -469,7 +469,7 @@ def make_bar_explicit(
     bar_mask = music_df.type == "bar"
     # TODO: (Malcolm 2023-12-25) maybe I should use appears_to_have_pickup_measure to
     #   determine initial_bar_number?
-    if not len(bar_mask):
+    if not bar_mask.any():
         raise ValueError("No bars found")
 
     music_df = number_bars(music_df, initial_bar_number)
@@ -493,7 +493,7 @@ def get_bar_relative_onset(music_df: pd.DataFrame) -> pd.DataFrame:
         music_df: The dataframe to add the bar relative onset column to.
     """
     bar_mask = music_df.type == "bar"
-    if not len(bar_mask):
+    if not bar_mask.any():
         raise ValueError("No bars found")
     music_df["bar_onset"] = float("nan")
     music_df.loc[bar_mask, "bar_onset"] = music_df.onset[bar_mask]
