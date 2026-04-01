@@ -1,6 +1,7 @@
 venvvars
 build
 pyrightconfig.json
+.DS_Store
 **/test_output
 
 
